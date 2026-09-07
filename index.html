@@ -1188,10 +1188,24 @@
                  như cành chính. Trần cho mọi nét ở dải chữ (x 110..350) là
                  y=59 — chân chữ "không" ở ~y59 — nên riêng chiếc lá x152 ngồi
                  thấp hơn đầu nhánh con một chút, đầu nhánh nằm lọt trong lá. -->
-            <path d="M0,87 C80,75 156,83 246,81" fill="none" stroke="#8a6a45"
-                  stroke-width="13" stroke-linecap="round"/>
-            <path d="M246,81 C300,79 340,86 372,82" fill="none" stroke="#8a6a45"
-                  stroke-width="8" stroke-linecap="round"/>
+            <!-- Cành chính thon dần bằng SÁU nét chồng lên nhau, cùng một
+                 đường cong, nét sau ngắn hơn nét trước và dày hơn — vẽ từ
+                 MỎNG NHẤT (chạy hết cành) đến DÀY NHẤT (chỉ đoạn gốc), nên
+                 nét dày đè lên nét mỏng và bề dày giảm đều từ 13 xuống 6.
+                 Đừng quay lại kiểu hai nét 13 và 8 nối đuôi nhau: chỗ giáp
+                 mối tụt bề dày một phát 5 đơn vị, nhìn như cành bị gãy khấc.
+                 Mỗi bậc chỉ chênh 1.4 nên đầu tròn của nét dày phủ kín mối
+                 nối. Các đoạn ngắn là khúc cắt đúng của chính đường cong đó
+                 (chia De Casteljau) — sửa đường cong thì phải cắt lại cả sáu,
+                 lệch một cái là cành phình ra một cục. -->
+            <g fill="none" stroke="#8a6a45" stroke-linecap="round">
+              <path d="M0,87 C80,75 156,83 246,81 C300,79 340,86 372,82" stroke-width="6"/>
+              <path d="M0,87 C80,75 156,83 246,81 C282,79.7 311.8,82.3 337.1,83.1" stroke-width="7.4"/>
+              <path d="M0,87 C80,75 156,83 246,81 C264,80.3 280.4,80.7 295.6,81.3" stroke-width="8.8"/>
+              <path d="M0,87 C80,75 156,83 246,81" stroke-width="10.2"/>
+              <path d="M0,87 C53.3,79 104.9,79.9 160,80.8" stroke-width="11.6"/>
+              <path d="M0,87 C26.7,83 52.9,81.2 79.3,80.6" stroke-width="13"/>
+            </g>
             <path d="M112,83 C124,73 138,69 152,67 M300,85 C314,73 330,69 344,69"
                   fill="none" stroke="#8a6a45" stroke-width="4.5" stroke-linecap="round"/>
             <g fill="#4c706b" stroke="#2a231c" stroke-width="2">
