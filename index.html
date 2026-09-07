@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>See You Soon!</title>
+<meta name="description" content="Những nốt nhạc nhỏ cho một chuyến đi xa...">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Piazzolla:opsz,wght@8..30,400..700&family=Patrick+Hand&display=swap" rel="stylesheet">
+<!-- ?v= là số hiệu bản. ĐỔI CSS/JS THÌ TĂNG SỐ NÀY LÊN, không thì
+     trình duyệt (và GitHub Pages) cứ dùng bản cũ trong cache. -->
+<link rel="stylesheet" href="style.css?v=2.27">
+<!-- không có JS thì bỏ luôn màn gói quà, đọc thẳng tấm thiệp -->
+<noscript><style>
+  .gift-gate{ display:none; }
+  body.gift-locked .book, body.gift-locked .controls{ opacity:1; }
+</style></noscript>
+</head>
+<body class="gift-locked">
+
+<!-- ============================================================
+     SPRITE
+     Ben : mèo đen ôm đàn, kính phi công — to hơn Bin một chút
+     Bin : mèo đen đeo máy ảnh
+     Cách lắp: thân (#cat-core) + mặt (#face-*) + phụ kiện
+     ============================================================ -->
+<svg class="sprite" width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+  <defs>
+
+    <!-- ---------- filter & pattern ---------- -->
+
+    <!-- mặt kính TRONG SUỐT KHÔNG MÀU: chỉ là phản chiếu trắng mờ, có alpha
+         để màu lông đen hiện qua. Đừng tô màu đặc (xanh/xám) — thành kính đục. -->
+    <linearGradient id="glass" x1="0" y1="0" x2="0.4" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.5"/>
+      <stop offset="0.45" stop-color="#f2f0ec" stop-opacity="0.2"/>
+      <stop offset="1" stop-color="#b8b4ad" stop-opacity="0.32"/>
+    </linearGradient>
+
+    <!-- CHIỀU SÂU: lông không phẳng một màu — sáng ở trên-trái, tối dần xuống dưới-phải.
+         Chỉ dùng gradient, KHÔNG dùng filter nhiễu (xem CHANGELOG v0.4). -->
+    <radialGradient id="fur-head" cx="0.36" cy="0.26" r="0.86">
+      <stop offset="0" stop-color="#332c26"/>
+      <stop offset="0.5" stop-color="#1c1815"/>
+      <stop offset="1" stop-color="#0d0b09"/>
+    </radialGradient>
+    <radialGradient id="fur-body" cx="0.38" cy="0.16" r="0.92">
+      <stop offset="0" stop-color="#2b2521"/>
+      <stop offset="0.55" stop-color="#181410"/>
+      <stop offset="1" stop-color="#0c0a08"/>
+    </radialGradient>
+    <linearGradient id="fur-limb" x1="0.2" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="#282320"/>
+      <stop offset="1" stop-color="#100e0c"/>
+    </linearGradient>
+    <linearGradient id="ear-inner" x1="0.3" y1="0" x2="0.8" y2="1">
+      <stop offset="0" stop-color="#efe7d4"/>
+      <stop offset="1" stop-color="#cbbc9f"/>
+    </linearGradient>
+    <!-- hia trắng của Ben -->
+    <linearGradient id="boot" x1="0.2" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="#fdfbf4"/>
+      <stop offset="1" stop-color="#d5cec0"/>
+    </linearGradient>
+
+    <!-- bóng mềm: mép mờ dần nên không lộ đường viền ellipse -->
+    <radialGradient id="soft-shadow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#000000" stop-opacity="0.42"/>
+      <stop offset="0.55" stop-color="#000000" stop-opacity="0.24"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+
+    <clipPath id="clip-head">
+      <ellipse cx="100" cy="86" rx="58" ry="54"/>
+    </clipPath>
+    <clipPath id="clip-tail">
+      <path d="M140,152 C166,146 188,152 194,165 C198,175 190,182 182,179
+               C175,176 176,169 180,167 C184.5,166 180,160.6 169,160.6
+               C159,161.4 148,163 140,167 Z"/>
+    </clipPath>
+
+    <clipPath id="clip-body">
+      <path d="M100,94 C69,94 53,119 53,147 C53,167 63,180 79,180
+               L121,180 C137,180 147,167 147,147 C147,119 131,94 100,94 Z"/>
+    </clipPath>
+
+    <pattern id="halftone" width="7" height="7" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.5" fill="#2a231c" opacity=".32"/>
+    </pattern>
+    <pattern id="halftone-soft" width="9" height="9" patternUnits="userSpaceOnUse">
+      <circle cx="2.5" cy="2.5" r="1.2" fill="#b4442e" opacity=".26"/>
+    </pattern>
+
+    <!-- ---------- THÂN ----------
+         Dáng ngồi: ĐẦU là khối riêng chồng lên THÂN (không gộp một cục).
+         Nét sạch, không dùng filter nhiễu. Chân chạm y=180.
+    -->
+    <g id="cat-core">
+      <!-- râu: vẽ trước để thò ra từ sau đầu -->
+      <g stroke="#2a231c" stroke-width="2.3" stroke-linecap="round" fill="none" opacity=".85">
+        <path d="M48,78 C32,72 18,68 6,64"/>
+        <path d="M46,92 C30,92 16,92 4,93"/>
+        <path d="M48,106 C32,111 18,117 8,124"/>
+        <path d="M152,78 C168,72 182,68 194,64"/>
+        <path d="M154,92 C170,92 184,92 196,93"/>
+        <path d="M152,106 C168,111 182,117 192,124"/>
+      </g>
+      <!-- bóng đổ dưới đất (mép mờ dần) -->
+      <ellipse cx="100" cy="181" rx="68" ry="10" fill="url(#soft-shadow)"/>
+      <!-- đuôi: GIỮ NGUYÊN đường cũ, chỉ nới chỗ eo cho bớt lõm (v2.6).
+           Chỗ lõm nằm ở mép TRONG khúc cong, đoạn từ (180,167) về
+           (169,160.6): hai điểm điều khiển cũ (185,164)/(180,158) kéo
+           mép trong áp sát mép ngoài nên bề dày tụt còn 7.1. Hạ xuống
+           (184.5,166)/(180,160.6) là bề dày ở eo lên ~9.1, đều hơn mà
+           dáng đuôi không đổi. ĐỪNG vẽ lại đuôi — chỉ nắn hai điểm này. -->
+      <path d="M140,152 C166,146 188,152 194,165 C198,175 190,182 182,179
+               C175,176 176,169 180,167 C184.5,166 180,160.6 169,160.6
+               C159,161.4 148,163 140,167 Z" fill="url(#fur-limb)"/>
+      <!-- vệt sáng trên lưng đuôi (cắt trong đuôi, không để tràn ra giấy) -->
+      <g clip-path="url(#clip-tail)">
+        <path d="M148,151 C166,148 182,153 190,161" fill="none" stroke="#6b6157"
+              stroke-width="2.6" stroke-linecap="round" opacity=".3"/>
+      </g>
+      <!-- thân -->
+      <path d="M100,94 C69,94 53,119 53,147 C53,167 63,180 79,180
+               L121,180 C137,180 147,167 147,147 C147,119 131,94 100,94 Z" fill="url(#fur-body)"/>
+      <!-- hai chân trước -->
+      <rect x="69" y="149" width="27" height="31" rx="13.5" fill="url(#fur-limb)"/>
+      <rect x="104" y="149" width="27" height="31" rx="13.5" fill="url(#fur-limb)"/>
+      <path d="M78,167 v9 M87,167 v9" stroke="#f0e2c4" stroke-width="1.8" stroke-linecap="round" opacity=".9"/>
+      <path d="M113,167 v9 M122,167 v9" stroke="#f0e2c4" stroke-width="1.8" stroke-linecap="round" opacity=".9"/>
+      <!-- bóng ĐẦU đổ xuống ngực — tách đầu khỏi thân, thiếu nó hai khối dính làm một.
+           PHẢI cắt theo #clip-body, không thì mép bóng thò ra ngoài viền thân. -->
+      <g clip-path="url(#clip-body)">
+        <ellipse cx="100" cy="139" rx="50" ry="17" fill="url(#soft-shadow)"/>
+      </g>
+      <!-- tai (sau đầu) -->
+      <path d="M51,58 C45,40 46,26 52,18 C62,17 83,32 96,46 Z" fill="url(#fur-limb)"/>
+      <path d="M149,58 C155,40 154,26 148,18 C138,17 117,32 104,46 Z" fill="url(#fur-limb)"/>
+      <path d="M60,52 C57,41 58,31 62,26 C69,26 80,36 88,45 Z" fill="url(#ear-inner)"/>
+      <path d="M140,52 C143,41 142,31 138,26 C131,26 120,36 112,45 Z" fill="url(#ear-inner)"/>
+      <!-- đầu -->
+      <ellipse cx="100" cy="86" rx="58" ry="54" fill="url(#fur-head)"/>
+      <!-- vệt sáng viền đầu phía trên-trái (nguồn sáng ở trên-trái).
+           PHẢI cắt theo #clip-head, không thì nửa nét stroke hắt ra ngoài thành quầng xám trên giấy. -->
+      <g clip-path="url(#clip-head)">
+        <path d="M44,72 A58,54 0 0,1 76,37" fill="none" stroke="#7d7266"
+              stroke-width="6" stroke-linecap="round" opacity=".38"/>
+      </g>
+    </g>
+
+    <!-- ---------- MẮT & MIỆNG ---------- -->
+    <g id="eyes-open">
+      <ellipse cx="74" cy="92" rx="21" ry="23" fill="#100e0c"/>
+      <ellipse cx="126" cy="92" rx="21" ry="23" fill="#100e0c"/>
+      <ellipse cx="74" cy="92" rx="19" ry="21" fill="none" stroke="#d6dd5a" stroke-width="5.4"/>
+      <ellipse cx="126" cy="92" rx="19" ry="21" fill="none" stroke="#d6dd5a" stroke-width="5.4"/>
+      <circle cx="66" cy="83" r="7" fill="#fdf6e3"/>
+      <circle cx="118" cy="83" r="7" fill="#fdf6e3"/>
+      <circle cx="81" cy="102" r="3.2" fill="#fdf6e3" opacity=".55"/>
+      <circle cx="133" cy="102" r="3.2" fill="#fdf6e3" opacity=".55"/>
+    </g>
+
+    <!-- MẮT TRÒN XOE — KHÔNG phóng to nữa. Mắt giữ đúng cỡ #eyes-open
+         như mọi trang; cái "wow" nằm ở mấy đốm sáng #sparkles quanh đầu. -->
+    <g id="eyes-wide">
+      <use href="#eyes-open"/>
+    </g>
+
+    <!-- MẮT LONG LANH — cũng đúng cỡ mắt bình thường. Long lanh thể hiện
+         bằng hai mảng sáng sẵn có trong #eyes-open, không phóng to mắt:
+         phóng to thì mặt thành tròn xoe, lệch hẳn với các trang truyện. -->
+    <g id="eyes-sparkle">
+      <use href="#eyes-open"/>
+    </g>
+
+    <g id="eyes-happy">
+      <path d="M58,97 q16,-18 32,0" fill="none" stroke="#d6dd5a" stroke-width="6" stroke-linecap="round"/>
+      <path d="M110,97 q16,-18 32,0" fill="none" stroke="#d6dd5a" stroke-width="6" stroke-linecap="round"/>
+    </g>
+
+    <!-- MẮT NGÂN NGA — cung cong XUỐNG DƯỚI (ngược với #eyes-happy).
+         Dùng khi Bin nhắm mắt hát: mắt lim dim thả theo giai điệu,
+         khác với kiểu cười tít mắt cong lên. -->
+    <g id="eyes-sing">
+      <path d="M58,86 q16,18 32,0" fill="none" stroke="#d6dd5a" stroke-width="6" stroke-linecap="round"/>
+      <path d="M110,86 q16,18 32,0" fill="none" stroke="#d6dd5a" stroke-width="6" stroke-linecap="round"/>
+    </g>
+
+    <g id="eyes-wink">
+      <ellipse cx="126" cy="92" rx="21" ry="23" fill="#100e0c"/>
+      <ellipse cx="126" cy="92" rx="19" ry="21" fill="none" stroke="#d6dd5a" stroke-width="5.4"/>
+      <circle cx="118" cy="83" r="7" fill="#fdf6e3"/>
+      <path d="M58,97 q16,-18 32,0" fill="none" stroke="#d6dd5a" stroke-width="6" stroke-linecap="round"/>
+    </g>
+
+    <!-- KHÔNG vẽ lông mày cho hai đứa (chốt ở v1.2). Buồn thì đọc ra ở
+         mắt cụp xuống + giọt nước mắt, không kẻ mày. -->
+    <g id="eyes-sad">
+      <use href="#eyes-open" transform="translate(100,92) scale(0.88) translate(-100,-92)"/>
+    </g>
+
+    <!-- MÁ HỒNG: tô ĐẶC, không để opacity, và phải vẽ TRƯỚC mắt trong
+         mọi khối #face-* — má và mắt giao nhau ở x 53..64 / 136..147,
+         y 105..115, vẽ má sau là mắt bị khoét mất một miếng.
+         KHÔNG bao clip-path="url(#clip-head)" — đã thử, chủ nhà bỏ:
+         má cứ tràn ra ngoài viền đầu một chút là đúng. -->
+    <g id="blush">
+      <ellipse cx="52" cy="112" rx="12" ry="6.5" fill="#c9705c"/>
+      <ellipse cx="148" cy="112" rx="12" ry="6.5" fill="#c9705c"/>
+    </g>
+
+    <!-- mũi: khối BẦU DỤC nhỏ, không phải tam giác.
+         Màu ĐEN nhưng phải là shade KHÁC màu lông (#1c1815 vùng mặt) —
+         đen hơi ngả nâu + một chấm sáng, nếu không mũi biến mất. -->
+    <g id="nose">
+      <ellipse cx="100" cy="116" rx="6.2" ry="4.6" fill="#3b322b"/>
+      <ellipse cx="98" cy="114.4" rx="2.2" ry="1.4" fill="#8d8272" opacity=".8"/>
+    </g>
+
+    <!-- KHÔNG vẽ miệng: mẫu gấu bông chỉ có mắt. Cảm xúc thể hiện bằng ÁNH MẮT. -->
+
+    <g id="sparkles">
+      <path d="M26,58 l3,8 l8,3 l-8,3 l-3,8 l-3,-8 l-8,-3 l8,-3 Z" fill="#e8dcc0"/>
+      <path d="M176,46 l2.5,6.5 l6.5,2.5 l-6.5,2.5 l-2.5,6.5 l-2.5,-6.5 l-6.5,-2.5 l6.5,-2.5 Z" fill="#e8dcc0"/>
+    </g>
+
+    <g id="tear">
+      <path d="M56,112 c7,11 5,18 -2,18 c-7,0 -9,-7 -2,-18 Z" fill="#a8c8d8" stroke="#2a231c" stroke-width="1.6"/>
+    </g>
+
+    <!-- ---------- KHUÔN MẶT ---------- -->
+    <g id="face-smile"><use href="#blush"/><use href="#eyes-open"/><use href="#nose"/></g>
+    <g id="face-joy"><use href="#blush"/><use href="#eyes-happy"/><use href="#nose"/></g>
+    <g id="face-wow"><use href="#blush"/><use href="#eyes-wide"/><use href="#nose"/><use href="#sparkles"/></g>
+    <g id="face-wink"><use href="#blush"/><use href="#eyes-wink"/><use href="#nose"/></g>
+    <g id="face-sad"><use href="#eyes-sad"/><use href="#nose"/><use href="#tear"/></g>
+    <g id="face-sparkle"><use href="#blush"/><use href="#eyes-sparkle"/><use href="#nose"/></g>
+    <g id="face-sing"><use href="#blush"/><use href="#eyes-sing"/><use href="#nose"/></g>
+
+    <!-- ---------- PHỤ KIỆN ---------- -->
+    <!-- kính phi công: hai tròng BẦU DỤC viền dày, đặt sát nhau, + dây đeo vòng đầu -->
+    <g id="goggles">
+      <!-- dây đeo -->
+      <path d="M62,58 C63,44 72,38 84,38 M116,38 C128,38 137,44 138,58"
+            fill="none" stroke="#544a40" stroke-width="8" stroke-linecap="round"/>
+      <path d="M62,58 C63,44 72,38 84,38 M116,38 C128,38 137,44 138,58"
+            fill="none" stroke="#a79c8d" stroke-width="2.4" stroke-linecap="round"
+            stroke-dasharray="5 6"/>
+      <!-- cầu nối giữa hai tròng (ngắn vì hai mắt kính sát nhau) -->
+      <path d="M94,50 q6,-4 12,0" fill="none" stroke="#e6e3dc" stroke-opacity=".58"
+            stroke-width="6.5" stroke-linecap="round"/>
+      <!-- tròng kính bầu dục -->
+      <g>
+        <ellipse cx="79" cy="52" rx="17" ry="13" fill="url(#glass)"/>
+        <ellipse cx="79" cy="52" rx="17" ry="13" fill="none" stroke="#e6e3dc"
+                 stroke-opacity=".58" stroke-width="4.5"/>
+        <path d="M70,47 a11,9 0 0,1 9,-4" fill="none" stroke="#fdf6e3" stroke-width="3" stroke-linecap="round" opacity=".85"/>
+      </g>
+      <g>
+        <ellipse cx="121" cy="52" rx="17" ry="13" fill="url(#glass)"/>
+        <ellipse cx="121" cy="52" rx="17" ry="13" fill="none" stroke="#e6e3dc"
+                 stroke-opacity=".58" stroke-width="4.5"/>
+        <path d="M112,47 a11,9 0 0,1 9,-4" fill="none" stroke="#fdf6e3" stroke-width="3" stroke-linecap="round" opacity=".85"/>
+      </g>
+    </g>
+
+    <!-- HIA TRẮNG của Ben — chỉ NỬA DƯỚI chân trước là trắng, nửa trên giữ
+         nguyên màu lông của #cat-core (url(#fur-limb), đúng shade chân Bin).
+         Chân trước trong #cat-core là rect x69/x104, y149, 27x31, rx13.5 =>
+         cung đáy là nửa đường tròn r13.5 tâm y=166.5; cắt ngang ở y=164.5.
+         Chỉ Ben dùng #boots, Bin không có. -->
+    <g id="boots">
+      <path d="M69,164.5 L69,166.5 A13.5,13.5 0 0,0 96,166.5 L96,164.5 Z"
+            fill="url(#boot)" stroke="#2a231c" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M104,164.5 L104,166.5 A13.5,13.5 0 0,0 131,166.5 L131,164.5 Z"
+            fill="url(#boot)" stroke="#2a231c" stroke-width="1.6" stroke-linejoin="round"/>
+      <g stroke="#8d8272" stroke-width="1.8" stroke-linecap="round">
+        <path d="M78,169 v7 M87,169 v7"/>
+        <path d="M113,169 v7 M122,169 v7"/>
+      </g>
+    </g>
+
+    <!-- VÒNG CỔ của Ben — SHAPE CŨ: một nét cong mảnh vòng qua cổ.
+         Chỉ giữ thêm khoá bạc và chuông (chủ nhà chốt ở v1.2). -->
+    <g id="collar">
+      <path d="M56,128 C74,146 126,146 144,128" fill="none" stroke="#3b332b"
+            stroke-width="9" stroke-linecap="round"/>
+      <!-- khoá bạc, nghiêng theo độ dốc của vòng cổ tại đó -->
+      <g transform="rotate(20 74 138)">
+        <rect x="67" y="132.5" width="12" height="11" rx="2" fill="none" stroke="#d3d6d1" stroke-width="2.6"/>
+        <path d="M72.5,138 h9" stroke="#d3d6d1" stroke-width="2.2" stroke-linecap="round"/>
+        <rect x="81.5" y="133" width="4" height="10" rx="1.4" fill="none" stroke="#b9bdb8" stroke-width="2"/>
+      </g>
+      <!-- KHÔNG có khoen. Chuông gắn thẳng vào vòng cổ: tâm chuông đặt ở
+           y=147.5 nên nửa trên của chuông CHE MỘT PHẦN bản vòng cổ
+           (vòng cổ tại x=100 nằm trong khoảng y 137..146). -->
+      <circle cx="100" cy="147.5" r="6.6" fill="#d6d9d6" stroke="#2a231c" stroke-width="1.6"/>
+      <path d="M94.1,149 h11.8" stroke="#2a231c" stroke-width="1.7" stroke-linecap="round"/>
+      <circle cx="100" cy="151.6" r="1.5" fill="#2a231c"/>
+      <path d="M95.8,144.8 a4.5,4.5 0 0,1 3.3,-2.3" fill="none" stroke="#fdf6e3"
+            stroke-width="1.6" stroke-linecap="round" opacity=".85"/>
+    </g>
+
+    <!-- đàn: gốc toạ độ = tâm thùng đàn -->
+    <!-- ĐÀN acoustic đen – trắng.
+         Thân đen, viền và chi tiết trắng kem để không chìm vào lông Ben.
+         Gốc toạ độ = tâm thùng đàn, cần hướng LÊN. -->
+    <g id="guitar">
+      <!-- cần -->
+      <rect x="-6" y="-68" width="12" height="44" rx="2" fill="#2a2420" stroke="#f4f1e8" stroke-width="1.4"/>
+      <rect x="-4.6" y="-68" width="9.2" height="42" rx="1.5" fill="#14110f"/>
+      <g stroke="#cfc9bb" stroke-width="1.1" opacity=".8">
+        <path d="M-4.6,-60 h9.2 M-4.6,-52 h9.2 M-4.6,-44 h9.2 M-4.6,-36 h9.2"/>
+      </g>
+      <!-- đầu đàn -->
+      <path d="M-7,-68 h14 l2,-14 a3,3 0 0,1 -3,-3 h-12 a3,3 0 0,1 -3,3 Z"
+            fill="#1a1714" stroke="#f4f1e8" stroke-width="1.6"/>
+      <rect x="-7" y="-70" width="14" height="2.6" rx="1" fill="#f4f1e8"/>
+      <g fill="#d6d9d6" stroke="#2a231c" stroke-width="0.8">
+        <circle cx="-10" cy="-76" r="2.2"/><circle cx="-10" cy="-82" r="2.2"/>
+        <circle cx="10" cy="-76" r="2.2"/><circle cx="10" cy="-82" r="2.2"/>
+      </g>
+      <!-- thùng đàn hai bầu -->
+      <path d="M0,-27 C13,-27 21,-20 21,-10 C21,-4 17,-1 17,3
+               C17,8 22,12 22,19 C22,27 12,32 0,32
+               C-12,32 -22,27 -22,19 C-22,12 -17,8 -17,3
+               C-17,-1 -21,-4 -21,-10 C-21,-20 -13,-27 0,-27 Z"
+            fill="#1a1714" stroke="#f4f1e8" stroke-width="2.2"/>
+      <path d="M0,-23 C11,-23 18,-17 18,-9 C18,-4 14,-1 14,3
+               C14,8 19,12 19,19 C19,25 11,29 0,29
+               C-11,29 -19,25 -19,19 C-19,12 -14,8 -14,3
+               C-14,-1 -18,-4 -18,-9 C-18,-17 -11,-23 0,-23 Z"
+            fill="none" stroke="#8d8272" stroke-width="1.2" opacity=".8"/>
+      <!-- lỗ thoát âm -->
+      <circle cx="0" cy="-7" r="7.5" fill="#0d0b09"/>
+      <circle cx="0" cy="-7" r="9.6" fill="none" stroke="#f4f1e8" stroke-width="1.5"/>
+      <circle cx="0" cy="-7" r="11.4" fill="none" stroke="#8d8272" stroke-width="0.9" opacity=".7"/>
+      <!-- ngựa đàn -->
+      <rect x="-9" y="12" width="18" height="6" rx="2" fill="#2a2420" stroke="#f4f1e8" stroke-width="1.2"/>
+      <g fill="#f4f1e8"><circle cx="-5" cy="15" r="1.1"/><circle cx="0" cy="15" r="1.1"/><circle cx="5" cy="15" r="1.1"/></g>
+      <!-- dây -->
+      <g stroke="#f0e2c4" stroke-width="0.9" opacity=".8">
+        <path d="M-3,13 V-69 M0,13 V-69 M3,13 V-69"/>
+      </g>
+    </g>
+      <g fill="#2f2119">
+        <circle cx="0" cy="-40" r="1.3"/><circle cx="0" cy="-56" r="1.3"/><circle cx="0" cy="-72" r="1.3"/>
+      </g>
+      <!-- đầu đàn 6-in-line -->
+      <path d="M-5.5,-76 C-9,-80 -10,-88 -7,-94 C-4,-99 4,-100 7,-95
+               C10,-90 8,-82 5.5,-76 Z" fill="#d9bc86" stroke="#2a231c" stroke-width="1.4"/>
+      <rect x="-5.8" y="-77.5" width="11.6" height="2.4" rx="1" fill="#f4f1e8"/>
+      <g fill="#d6d9d6" stroke="#2a231c" stroke-width="0.6">
+        <circle cx="-7.5" cy="-82" r="1.7"/><circle cx="-8.5" cy="-87" r="1.7"/>
+        <circle cx="-7" cy="-92" r="1.7"/>
+        <circle cx="4" cy="-96" r="1.7"/><circle cx="0" cy="-97" r="1.7"/>
+        <circle cx="-3.5" cy="-96" r="1.7"/>
+      </g>
+      <!-- thân đàn: hai sừng lệch kiểu Strat -->
+      <path d="M-7,-27
+               C-13,-33 -22,-35 -26,-29 C-29,-24 -27,-18 -25,-13
+               C-23,-9 -21,-6 -22,-1 C-24,7 -22,17 -14,24
+               C-8,29 -4,31 0,31 C4,31 9,29 14,24
+               C21,17 24,7 22,-1 C21,-6 19,-9 21,-13
+               C23,-18 24,-23 21,-27 C18,-31 11,-31 7,-27 Z"
+            fill="#171513" stroke="#e4e9ea" stroke-width="1.5"/>
+      <!-- mặt nạ trắng -->
+      <path d="M-1,-19 C-8,-18 -13,-11 -14,-3
+               C-15,5 -12,14 -6,18 C-2,21 2,20 5,17
+               C9,13 11,5 10,-2 C9,-10 5,-17 -1,-19 Z"
+            fill="#f4f1e8" stroke="#8d8272" stroke-width="0.8"/>
+      <!-- 3 pickup single-coil -->
+      <g fill="#f9f7f1" stroke="#6f675a" stroke-width="0.7">
+        <rect x="-10" y="-13" width="14" height="4" rx="1.2" transform="rotate(-14 -3 -11)"/>
+        <rect x="-10" y="-5" width="14" height="4" rx="1.2" transform="rotate(-8 -3 -3)"/>
+        <rect x="-10" y="3" width="14" height="4" rx="1.2"/>
+      </g>
+      <!-- ngựa đàn tremolo + cần rung -->
+      <rect x="-11" y="14" width="17" height="5.4" rx="1.2" fill="#b9c0c2" stroke="#2a231c" stroke-width="0.8"/>
+      <path d="M-11,17 C-17,19 -19,24 -18,27" fill="none" stroke="#d6d9d6" stroke-width="1.6" stroke-linecap="round"/>
+      <!-- núm chỉnh + jack -->
+      <g fill="#f4f1e8" stroke="#6f675a" stroke-width="0.7">
+        <circle cx="9" cy="8" r="2.3"/><circle cx="11" cy="14" r="2.3"/><circle cx="6" cy="19" r="2.3"/>
+      </g>
+      <ellipse cx="-16" cy="21" rx="4" ry="2.6" fill="#b9c0c2" stroke="#2a231c" stroke-width="0.7"
+               transform="rotate(-30 -16 21)"/>
+      <!-- dây -->
+      <g stroke="#f0e2c4" stroke-width="0.7" opacity=".85">
+        <path d="M-3,16 L-4.5,-77 M0,16 V-77 M3,16 L4.5,-77"/>
+      </g>
+    </g>
+      <!-- đầu đàn -->
+      <path d="M-6,-72 h12 l3,-15 a3,3 0 0,0 -3,-4 h-12 a3,3 0 0,0 -3,4 Z"
+            fill="#171513" stroke="#dfe4e6" stroke-width="1.8"/>
+      <g fill="#cfd6d9" stroke="#2a231c" stroke-width="0.7">
+        <circle cx="-9" cy="-79" r="1.9"/><circle cx="-9" cy="-85" r="1.9"/>
+        <circle cx="9" cy="-79" r="1.9"/><circle cx="9" cy="-85" r="1.9"/>
+      </g>
+      <!-- thân đàn kiểu điện, hai sừng trên -->
+      <path d="M0,-26 C8,-26 12,-23 15,-19
+               C19,-24 25,-22 25,-13 C25,-5 21,-1 21,5
+               C21,16 13,30 0,30 C-13,30 -21,16 -21,5
+               C-21,-1 -25,-5 -25,-13 C-25,-22 -19,-24 -15,-19
+               C-12,-23 -8,-26 0,-26 Z"
+            fill="#171513" stroke="#dfe4e6" stroke-width="2.2"/>
+      <!-- mặt nạ bạc -->
+      <path d="M-2,-17 C5,-17 11,-10 12,-1 C13,7 8,18 -1,20
+               C-6,21 -11,16 -12,9 C-13,0 -9,-15 -2,-17 Z"
+            fill="#c2cace" stroke="#8d8272" stroke-width="0.8" opacity=".95"/>
+      <!-- pickup -->
+      <rect x="-11" y="-6" width="19" height="6" rx="1.5" fill="#2b2622" stroke="#8d8272" stroke-width="0.8"
+            transform="rotate(-12 -1.5 -3)"/>
+      <rect x="-10" y="6" width="19" height="6" rx="1.5" fill="#2b2622" stroke="#8d8272" stroke-width="0.8"
+            transform="rotate(-12 -0.5 9)"/>
+      <!-- ngựa đàn + núm chỉnh -->
+      <rect x="-8" y="16" width="17" height="5" rx="1.5" fill="#9aa3a6" stroke="#2a231c" stroke-width="0.9"/>
+      <circle cx="13" cy="12" r="2.4" fill="#cfd6d9" stroke="#2a231c" stroke-width="0.8"/>
+      <circle cx="15" cy="3" r="2.4" fill="#cfd6d9" stroke="#2a231c" stroke-width="0.8"/>
+      <!-- dây -->
+      <g stroke="#f0e2c4" stroke-width="0.9" opacity=".85">
+        <path d="M-3,17 V-73 M0,17 V-73 M3,17 V-73"/>
+      </g>
+    </g>
+      <!-- đầu đàn -->
+      <path d="M-7,-68 h14 l2,-14 a3,3 0 0,1 -3,-3 h-12 a3,3 0 0,1 -3,3 Z"
+            fill="#7a5230" stroke="#2a231c" stroke-width="1.6"/>
+      <rect x="-7" y="-70" width="14" height="3" rx="1" fill="#e8dcc0"/>
+      <g fill="#d8a33f" stroke="#2a231c" stroke-width="0.9">
+        <circle cx="-10" cy="-76" r="2.2"/><circle cx="-10" cy="-82" r="2.2"/>
+        <circle cx="10" cy="-76" r="2.2"/><circle cx="10" cy="-82" r="2.2"/>
+      </g>
+      <!-- thùng đàn hai bầu -->
+      <path d="M0,-27 C13,-27 21,-20 21,-10 C21,-4 17,-1 17,3
+               C17,8 22,12 22,19 C22,27 12,32 0,32
+               C-12,32 -22,27 -22,19 C-22,12 -17,8 -17,3
+               C-17,-1 -21,-4 -21,-10 C-21,-20 -13,-27 0,-27 Z"
+            fill="#b8823f" stroke="#2a231c" stroke-width="2"/>
+      <path d="M0,-24 C11,-24 18,-18 18,-10 C18,-4 14,-1 14,3
+               C14,8 19,12 19,19 C19,25 11,29 0,29
+               C-11,29 -19,25 -19,19 C-19,12 -14,8 -14,3
+               C-14,-1 -18,-4 -18,-10 C-18,-18 -11,-24 0,-24 Z"
+            fill="none" stroke="#f0e2c4" stroke-width="1.6" opacity=".9"/>
+      <!-- lỗ thoát âm -->
+      <circle cx="0" cy="-7" r="7.5" fill="#2f2119"/>
+      <circle cx="0" cy="-7" r="9.5" fill="none" stroke="#e8dcc0" stroke-width="1.3" opacity=".85"/>
+      <!-- ngựa đàn -->
+      <rect x="-9" y="12" width="18" height="6" rx="2" fill="#5a3c24" stroke="#2a231c" stroke-width="1.2"/>
+      <g fill="#e8dcc0"><circle cx="-5" cy="15" r="1"/><circle cx="0" cy="15" r="1"/><circle cx="5" cy="15" r="1"/></g>
+      <!-- dây -->
+      <g stroke="#fdf6e3" stroke-width="0.9" opacity=".75">
+        <path d="M-3,13 V-69 M0,13 V-69 M3,13 V-69"/>
+      </g>
+    </g>
+
+    <!-- MÁY ẢNH — TỐI GIẢN, chỉ giữ nét nhận dạng của prototype/plush-camera.png:
+         thân đen ngang, góc trên phải vát; khối bạc dọc (grip) bên trái;
+         một núm bạc trên nóc; đèn flash bạc to trên cuống, lệch phải;
+         ống kính ĐÚNG 2 VÒNG ĐỒNG TÂM: viền ngoài bạc sáng, lòng kính xám tối
+         — hai màu phải tương phản rõ. Không vòng khía răng cưa, không vòng thứ ba.
+         Gốc toạ độ = tâm ống kính. -->
+    <g id="camera">
+      <!-- cuống + đèn flash nhô trên nóc, lệch phải -->
+      <rect x="-8" y="-30" width="14" height="9" fill="#c8ccc6" stroke="#2a231c" stroke-width="1.4"/>
+      <rect x="-14" y="-41" width="27" height="15" rx="3" fill="#e8e6df" stroke="#2a231c" stroke-width="1.8"/>
+      <!-- một núm bạc trên nóc (gộp từ hai núm, cỡ nhỏ không tách ra được) -->
+      <rect x="-33" y="-27" width="19" height="5" rx="2.5" fill="#d6d9d6" stroke="#2a231c" stroke-width="1.3"/>
+      <!-- thân máy, góc trên phải vát -->
+      <path d="M-33,-23 H18 L25,-16 V16 a5,5 0 0,1 -5,5 H-33 a5,5 0 0,1 -5,-5 V-18 a5,5 0 0,1 5,-5 Z"
+            fill="#17130f" stroke="#cfc1a0" stroke-width="2.2" stroke-linejoin="round"/>
+      <!-- khối bạc dọc bên trái — canh NGANG tâm ống kính (cy = 0) -->
+      <rect x="-36" y="-15" width="16" height="30" rx="3" fill="#d3d6d1" stroke="#8d8272" stroke-width="1"/>
+      <!-- ống kính -->
+      <circle cx="0" cy="0" r="16.5" fill="#d3d6d1" stroke="#2a231c" stroke-width="1.8"/>
+      <circle cx="0" cy="0" r="9.6" fill="#4a514d"/>
+      <path d="M-5.4,-2.2 a6.6,6.6 0 0,1 5.4,-4" fill="none" stroke="#fdf6e3"
+            stroke-width="2" stroke-linecap="round" opacity=".9"/>
+    </g>
+
+    <!-- DÂY ĐEO CỔ của Bin — CÙNG ĐỘ CONG với #collar của Ben (v1.7):
+         path giống hệt, chỉ khác là không có khoá và chuông. -->
+    <path id="camera-strap" d="M56,128 C74,146 126,146 144,128"
+          fill="none" stroke="#3b332b" stroke-width="9" stroke-linecap="round"/>
+
+    <g id="note"><path d="M0,14 a5,4 0 1,0 6,-4 V0 l9,3 v4 l-9,-3" fill="#2a231c"/></g>
+    <!-- HAI NỐT MÓC ĐƠN NỐI DẦM (beamed eighth notes) — dùng cho chữ,
+         gọi bằng <svg class="note-inline"><use href="#note-beam"/></svg> -->
+    <g id="note-beam" fill="#2a231c">
+      <ellipse cx="4.4" cy="16.2" rx="4.4" ry="3.3" transform="rotate(-22 4.4 16.2)"/>
+      <ellipse cx="17.4" cy="14.2" rx="4.4" ry="3.3" transform="rotate(-22 17.4 14.2)"/>
+      <path d="M6.8,16.2 V3.1 h2 V16.2 Z"/>
+      <path d="M19.8,14.2 V1.1 h2 V14.2 Z"/>
+      <path d="M6.8,3.1 L21.8,1.1 v3.9 L6.8,7 Z"/>
+    </g>
+    <!-- XE ĐẠP nhìn ngang — dùng chèn giữa dòng chữ như #note-beam,
+         gọi bằng <svg class="bike-inline"><use href="#bike"/></svg>.
+         Vẽ bằng NÉT (không tô đặc): bánh xe đặc thì ở cỡ chữ thành hai
+         cục đen, không đọc ra xe. Nét 1.7 trên viewBox 30 -> quy ra cỡ
+         chữ thì xấp xỉ nét chữ của Piazzolla. -->
+    <g id="bike" fill="none" stroke="#2a231c" stroke-width="1.7"
+       stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="6.6" cy="13.4" r="5"/>
+      <circle cx="23.4" cy="13.4" r="5"/>
+      <!-- khung: tam giác sau + ống đứng + ống trên + ống chéo -->
+      <path d="M6.6,13.4 L11.8,7.4 L15.2,13.4 Z"/>
+      <path d="M11.8,7.4 L19.6,6.6 M15.2,13.4 L19.6,6.6 M19.6,6.6 L21.9,13.4"/>
+      <!-- yên + ghi đông -->
+      <path d="M10.2,6.6 h3.1 M17.9,5.2 h3.2"/>
+      <!-- trục giữa -->
+      <circle cx="15.2" cy="13.4" r=".9" fill="#2a231c" stroke="none"/>
+    </g>
+
+    <g id="cloud">
+      <path d="M0,20 a20,20 0 0,1 34,-14 a16,16 0 0,1 26,10 a14,14 0 0,1 -4,26 H14 A16,16 0 0,1 0,20 Z"
+            fill="#fdf6e3" stroke="#2a231c" stroke-width="2.5"/>
+    </g>
+    <!-- nhà nhỏ nhìn ngang, vẽ ở khung 60x54, chân nhà y=54 -->
+    <g id="house">
+      <path d="M4,24 L30,4 L56,24" fill="#b4442e" stroke="#2a231c" stroke-width="2.5" stroke-linejoin="round"/>
+      <rect x="9" y="23" width="42" height="31" fill="#fdf6e3" stroke="#2a231c" stroke-width="2.5"/>
+      <rect x="15" y="31" width="13" height="12" fill="#cddad6" stroke="#2a231c" stroke-width="2"/>
+      <rect x="34" y="31" width="11" height="23" fill="#8a6a45" stroke="#2a231c" stroke-width="2"/>
+      <rect x="40" y="6" width="8" height="13" fill="#8a6a45" stroke="#2a231c" stroke-width="2"/>
+    </g>
+
+    <g id="suitcase">
+      <rect x="0" y="8" width="54" height="38" rx="4" fill="#8a6a45" stroke="#2a231c" stroke-width="2.5"/>
+      <path d="M18,8 v-6 a9,9 0 0,1 18,0 v6" fill="none" stroke="#2a231c" stroke-width="2.5"/>
+      <path d="M0,22 h54 M0,32 h54" stroke="#2a231c" stroke-width="1.6" opacity=".6"/>
+    </g>
+
+    <!-- ============================================================
+         DÁNG — mèo ngồi, bốn chân, không có tay người.
+         Khác nhau ở biểu cảm; đàn dựng cạnh người, máy ảnh đeo dây.
+         ============================================================ -->
+    <g id="ben-smile">
+      <use href="#cat-core"/>
+      <use href="#boots"/>
+      <use href="#face-smile"/><use href="#camera-strap"/>
+      <use href="#camera" transform="translate(104.3,159) scale(.66)"/>
+    </g>
+
+    <g id="ben-joy">
+      <use href="#cat-core"/>
+      <use href="#boots"/>
+      <use href="#face-joy"/><use href="#camera-strap"/>
+      <use href="#camera" transform="translate(104.3,159) scale(.66)"/>
+    </g>
+
+    <g id="ben-wink">
+      <use href="#cat-core"/>
+      <use href="#boots"/>
+      <use href="#face-wink"/><use href="#camera-strap"/>
+      <use href="#camera" transform="translate(104.3,159) scale(.66)"/>
+    </g>
+
+    <g id="ben-sparkle">
+      <use href="#cat-core"/>
+      <use href="#boots"/>
+      <use href="#face-sparkle"/><use href="#camera-strap"/>
+      <use href="#camera" transform="translate(104.3,159) scale(.66)"/>
+    </g>
+
+    <g id="ben-wow">
+      <use href="#cat-core"/>
+      <use href="#boots"/>
+      <use href="#face-wow"/><use href="#camera-strap"/>
+      <use href="#camera" transform="translate(104.3,159) scale(.66)"/>
+    </g>
+
+    <g id="ben-sad">
+      <use href="#cat-core"/>
+      <use href="#boots"/>
+      <use href="#face-sad"/><use href="#camera-strap"/>
+      <use href="#camera" transform="translate(104.2,160) scale(.65)"/>
+    </g>
+
+    <!-- Bin nhỏ hơn Ben 20%, thu quanh chân để đứng cùng mặt nền.
+         Tỉ lệ này bake sẵn ở đây nên mọi trang chỉ cần dùng CÙNG một
+         scale cho Ben và Bin — trừ khi cố ý tạo khác biệt chiều sâu. -->
+    <g id="bin-smile">
+      <g transform="translate(20,36) scale(.8)">
+        <use href="#cat-core"/>
+        <use href="#face-smile"/><use href="#goggles"/><use href="#collar"/>
+        <use href="#guitar" transform="translate(62,158) rotate(-38) scale(.64)"/>
+      </g>
+    </g>
+
+    <g id="bin-joy">
+      <g transform="translate(20,36) scale(.8)">
+        <use href="#cat-core"/>
+        <use href="#face-joy"/><use href="#goggles"/><use href="#collar"/>
+        <use href="#guitar" transform="translate(62,158) rotate(-38) scale(.64)"/>
+      </g>
+    </g>
+
+    <g id="bin-wow">
+      <g transform="translate(20,36) scale(.8)">
+        <use href="#cat-core"/>
+        <use href="#face-wow"/><use href="#goggles"/><use href="#collar"/>
+        <use href="#guitar" transform="translate(62,158) rotate(-38) scale(.64)"/>
+      </g>
+    </g>
+
+    <g id="bin-sparkle">
+      <g transform="translate(20,36) scale(.8)">
+        <use href="#cat-core"/>
+        <use href="#face-sparkle"/><use href="#goggles"/><use href="#collar"/>
+        <use href="#guitar" transform="translate(62,158) rotate(-38) scale(.64)"/>
+      </g>
+    </g>
+
+    <g id="bin-sing">
+      <g transform="translate(20,36) scale(.8)">
+        <use href="#cat-core"/>
+        <use href="#face-sing"/><use href="#goggles"/><use href="#collar"/>
+        <use href="#guitar" transform="translate(62,158) rotate(-38) scale(.64)"/>
+      </g>
+    </g>
+
+    <g id="bin-sad">
+      <g transform="translate(20,36) scale(.8)">
+        <use href="#cat-core"/>
+        <use href="#face-sad"/><use href="#goggles"/><use href="#collar"/>
+        <use href="#guitar" transform="translate(62,158) rotate(-38) scale(.64)"/>
+      </g>
+    </g>
+
+    <!-- ĐẦU THỎ TRƠN — không mặt, tô đặc, dùng trong con dấu đỏ ở trang 8.
+         Gốc toạ độ ở TÂM đầu; bbox khoảng x -16..16, y -23..21 (cao ~44).
+         CỠ NÀY LÀ CỐ Ý: con dấu "SEE YOU SOON" ở bìa cuối để hai dòng chữ
+         nằm gọn trong vòng tròn TRONG (r29), chừa giấy hai bên. Đầu thỏ
+         phải nằm trong đúng vòng đó, đừng để tai cắt qua vòng — bản đầu
+         (cao ~52) tai đâm qua vòng trong, nhìn nặng và lệch hẳn tông với
+         con dấu kia. -->
+    <g id="bunny-head">
+      <ellipse cx="-6.8" cy="-10" rx="4.4" ry="13.5" transform="rotate(-15 -6.8 -10)"/>
+      <ellipse cx="6.8"  cy="-10" rx="4.4" ry="13.5" transform="rotate(15 6.8 -10)"/>
+      <ellipse cx="0" cy="7" rx="15.5" ry="13.5"/>
+    </g>
+
+    <!-- TEM "TO BELGIUM" — cờ Bỉ + máy bay. Dùng ở CẢ bìa cuối VÀ trang 8,
+         nên để một bản duy nhất trong <defs>: sửa tem thì sửa ở đây, hai
+         chỗ kia tự theo. Vẽ trong khung 100x100, gọi bằng:
+           <svg class="stamp" viewBox="0 0 100 100"><use href="#stamp-belgium"/></svg>
+         (#stamp-art bên trong là khối cờ+máy bay đã canh giữa tem.) -->
+    <g id="stamp-belgium">
+    <rect x="4" y="4" width="92" height="92" fill="#f4ead2" stroke="#b4442e" stroke-width="3"
+          stroke-dasharray="6 4"/>
+    <!-- cờ Bỉ: ba sọc dọc đen - vàng - đỏ. Thu nhỏ và dịch lên trái
+         để chừa góc dưới phải cho máy bay. -->
+    <!-- CỜ + MÁY BAY gom thành MỘT KHỐI (#stamp-art) rồi dịch cả khối cho
+         cân giữa tem: bbox của khối là x 7.2..75.5, y 9.8..62.3, tâm
+         (41.36, 36.07); đích là (50, 41) — giữa vùng trống trên dòng chữ. -->
+    <g id="stamp-art" transform="translate(8.65,4.93)">
+      <!-- cờ Bỉ: ba sọc dọc đen - vàng - đỏ -->
+      <g transform="rotate(-4 39 32)">
+        <rect x="8" y="12" width="20.67" height="40" fill="#1a1a1a"/>
+        <rect x="28.67" y="12" width="20.66" height="40" fill="#f2c500"/>
+        <rect x="49.33" y="12" width="20.67" height="40" fill="#c8102e"/>
+        <rect x="8" y="12" width="62" height="40" fill="none" stroke="#2a231c" stroke-width="2"/>
+      </g>
+      <!-- MÁY BAY theo prototype/airplane.png:
+           - ĐUÔI ĐỨNG là MỘT KHỐI LIỀN với thân, nằm đúng ở đuôi: đường
+             viền chạy từ mép trên thân vọt lên đỉnh đuôi rồi đổ thẳng
+             xuống chóp đuôi thân. Không vẽ rời rồi ghép.
+           - CÁNH ĐUÔI DƯỚI sơn XANH, chĩa xuống-trái (mẩu xanh trong mẫu).
+           - thân TRẮNG, béo (dài/dày ≈ 5:1). -->
+      <g transform="translate(56,44) rotate(-20) scale(.66)"
+         stroke="#2a231c" stroke-width="2.8" stroke-linejoin="round">
+        <!-- cánh xa: quét lên sau, nằm sau thân -->
+        <path d="M18,-13.4 L-4,-28 L-16,-27.4 L0,-11.8 Z" fill="#dcd7cd"/>
+        <!-- cánh đuôi dưới, SƠN XANH -->
+        <path d="M-24,1 L-34.5,10.8 L-40,9.6 L-33,-1.8 Z" fill="#4a86b8"/>
+        <!-- thân + đuôi đứng: MỘT path duy nhất -->
+        <path d="M34,-7 C34,-11.6 28,-14.2 18,-14.4 C4,-14.6 -8,-12.4 -16,-10.8 L-36,-24.6 L-42,-23.2 L-33,-1.8 C-18,0 2,1.2 18,0 C28,-0.2 34,-2.8 34,-7 Z" fill="#f7f5ef"/>
+        <!-- sọc xanh dọc bụng: thụt vào trong thân, rồi kẻ lại viền -->
+        <path d="M-28,-3.2 C-18,-2 -2,-1.4 18,-2.4 C25,-3 28,-4 30,-5"
+              fill="none" stroke="#4a86b8" stroke-width="3.4" stroke-linecap="round"/>
+        <path d="M34,-7 C34,-11.6 28,-14.2 18,-14.4 C4,-14.6 -8,-12.4 -16,-10.8 L-36,-24.6 L-42,-23.2 L-33,-1.8 C-18,0 2,1.2 18,0 C28,-0.2 34,-2.8 34,-7 Z" fill="none"/>
+        <!-- cửa sổ -->
+        <g fill="#2a231c" stroke="none">
+          <circle cx="-14" cy="-7.2" r="1.5"/>
+          <circle cx="-7" cy="-8.5" r="1.5"/>
+          <circle cx="0" cy="-9.6" r="1.5"/>
+          <circle cx="7" cy="-10.1" r="1.5"/>
+          <circle cx="14" cy="-10.4" r="1.5"/>
+        </g>
+        <!-- cánh gần: quét xuống trước -->
+        <path d="M18,-0.4 L-6.5,23.5 L-18,23 L0,1 Z" fill="#f7f5ef"/>
+      </g>
+    </g>
+    <text x="50" y="88" text-anchor="middle" font-family="Piazzolla, Georgia, serif"
+          font-size="12" fill="#b4442e" letter-spacing="0.5">To Belgium</text>
+    </g>
+
+  </defs>
+</svg>
+
+
+<!-- ============================================================
+     GÓI QUÀ — màn mở đầu, đứng trước bìa trước
+     Giấy kraft, buộc dây cói, tag giấy nhỏ ghi "Open me".
+     Bấm vào => chạy animation cởi dây, bật nắp, rồi hiện bìa 1.
+     ============================================================ -->
+<!-- ============================================================
+     GÓI QUÀ — màn mở đầu, đứng trước bìa trước
+     Không phải hộp quà: đây là chính TẤM THIỆP được bọc giấy kraft,
+     cùng khổ với trang bìa, buộc dây cói chữ thập, gắn tag "Open me".
+     Bấm vào => cởi dây, hai cánh giấy bung ra, hiện bìa 1 đúng chỗ.
+     ============================================================ -->
+<div class="gift-gate" id="gift-gate">
+  <button class="gift-open" id="gift-open" type="button" aria-label="Mở gói quà">
+    <div class="gift-parcel">
+      <!-- hai cánh giấy kraft bọc tấm thiệp, BẰNG NHAU, khép sát nhau ở
+           nếp gấp chính giữa; mở ra như hai cánh cửa -->
+      <div class="wrap-half left"></div>
+      <div class="wrap-half right"></div>
+
+      <!-- dây cói buộc chữ thập -->
+      <div class="cord cord-v"></div>
+      <div class="cord cord-h"></div>
+
+      <!-- luồng sáng bật ra khi mở -->
+      <div class="gift-burst"></div>
+
+      <!-- nút buộc + tag.
+           Sợi cói vẽ theo prototype/present.jpg: dây TRÒN MẢNH, xoắn hai
+           tao, có xơ tua ra. Mỗi đường được <use> lại 4 lần với 4 kiểu
+           stroke chồng lên nhau: viền mực -> thân dây -> vệt sáng của tao
+           -> rãnh tối giữa hai tao. Đừng vẽ nơ bản to. -->
+      <svg class="gift-knot" viewBox="0 0 300 300" role="img"
+           aria-label="Nút dây cói và tag giấy ghi Open me">
+        <defs>
+          <!-- xơ dây: làm nhoè mép cho sợi tua ra, dùng chung cho cả bản dây CSS -->
+          <filter id="twine-fuzz" x="-10%" y="-10%" width="120%" height="120%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.85 0.42" numOctaves="2" seed="7" result="fray"/>
+            <feDisplacementMap in="SourceGraphic" in2="fray" scale="2.6"
+                               xChannelSelector="R" yChannelSelector="G"/>
+          </filter>
+
+          <linearGradient id="g-tagpaper" x1="0" y1="0" x2="0.4" y2="1">
+            <stop offset="0" stop-color="#fdf4dc"/>
+            <stop offset="1" stop-color="#e3cfa2"/>
+          </linearGradient>
+
+          <!-- đường tim của nơ: hai đuôi rủ, hai vòng, nút thắt -->
+          <!-- KHÔNG đặt stroke-linecap ở đây: mỗi lớp <use> tự chọn.
+               round cho lớp nét liền, butt cho lớp vạch tao. -->
+          <g id="bow-lines" fill="none" stroke-linejoin="round">
+            <path d="M145,104 C133,150 111,186 82,215"/>
+            <path d="M155,104 C165,152 187,188 216,217"/>
+            <path d="M150,100 C112,52 44,44 50,88 C54,121 117,113 150,100"/>
+            <path d="M150,100 C188,52 256,44 250,88 C246,121 183,113 150,100"/>
+          </g>
+          <g id="bow-knot" fill="none">
+            <path d="M140,100 L160,100"/>
+          </g>
+        </defs>
+
+        <!-- thứ bay ra khi mở -->
+        <g class="g-pop" aria-hidden="true">
+          <g class="pop pop-1"><use href="#sparkles" transform="translate(44,26) scale(.95)"/></g>
+          <g class="pop pop-2"><use href="#sparkles" transform="translate(148,14) scale(1.15)"/></g>
+          <g class="pop pop-3"><use href="#note-beam" transform="translate(92,74) scale(1.7)"/></g>
+          <g class="pop pop-4"><use href="#note-beam" transform="translate(196,68) scale(1.35)"/></g>
+          <g class="pop pop-5"><use href="#sparkles" transform="translate(120,56) scale(.75)"/></g>
+        </g>
+
+        <!-- Nghiêng nhẹ -12°: trục đối xứng của nơ chạy từ trên-trái
+             xuống dưới-phải cho tự nhiên, không dựng đứng như buộc máy.
+             Xoay ở lớp <g> TRONG, vì .t-bow đã dành cho transform của CSS. -->
+        <g class="t-bow" filter="url(#twine-fuzz)">
+         <g transform="rotate(-12 150 100)">
+          <!-- xơ dây tua ra ở vài chỗ -->
+          <g stroke="#8d7038" stroke-width="1.1" stroke-linecap="round" opacity=".7" fill="none">
+            <path d="M64,62 l-9,-6 M78,52 l-5,-9 M232,58 l9,-7 M220,50 l4,-9
+                     M96,206 l-9,4 M88,196 l-10,1 M208,204 l9,5 M214,192 l10,2
+                     M124,168 l-8,5 M182,172 l8,6 M150,132 l-2,10"/>
+          </g>
+          <!-- Mặt cắt sợi: 5 bước chuyển ĐÚNG dải màu của .cord
+               (#4a3413 mép -> #a2803f -> #c0a56d -> #dcc596 tim), tim MẢNH
+               để không có vạch sáng chói giữa sợi. Viền mực chỉ .16 — bản
+               dây CSS không có viền mực nào cả. -->
+          <use href="#bow-lines" stroke="#2a231c" stroke-width="13.2" stroke-linecap="round" opacity=".16"/>
+          <use href="#bow-knot"  stroke="#2a231c" stroke-width="23.6" stroke-linecap="round" opacity=".16"/>
+          <use href="#bow-lines" stroke="#4a3413" stroke-width="12" stroke-linecap="round"/>
+          <use href="#bow-knot"  stroke="#4a3413" stroke-width="23" stroke-linecap="round"/>
+          <use href="#bow-lines" stroke="#a2803f" stroke-width="9.4" stroke-linecap="round"/>
+          <use href="#bow-knot"  stroke="#a2803f" stroke-width="18" stroke-linecap="round"/>
+          <use href="#bow-lines" stroke="#c0a56d" stroke-width="6.8" stroke-linecap="round"/>
+          <use href="#bow-knot"  stroke="#c0a56d" stroke-width="13" stroke-linecap="round"/>
+          <use href="#bow-lines" stroke="#dcc596" stroke-width="3.4" stroke-linecap="round" opacity=".88"/>
+          <use href="#bow-knot"  stroke="#dcc596" stroke-width="6.4" stroke-linecap="round" opacity=".88"/>
+
+          <!-- VẠCH TAO. Vạch tao KHÔNG ĐƯỢC VẮT NGANG HẾT bề ngang sợi:
+               vắt hết + nhịp đều = hạt cườm, bất kể mảnh cỡ nào (xem
+               CHANGELOG v2.5/v2.6). Nên mỗi hàng chỉ rộng bằng ~55% bề
+               ngang sợi, chừa hai mép sợi liền mạch nên nhìn vẫn ra một
+               sợi liên tục. Ba hàng chu kỳ lệch nhau (7.5 / 8.6 / 11.4)
+               cho nhịp không đều, tương phản rất thấp (.1 - .12). -->
+          <use href="#bow-lines" stroke="#4a3413" stroke-width="6.6"
+               stroke-linecap="butt" stroke-dasharray="1.8 5.7" opacity=".12"/>
+          <use href="#bow-knot"  stroke="#4a3413" stroke-width="12.6"
+               stroke-linecap="butt" stroke-dasharray="1.8 5.7" opacity=".12"/>
+          <use href="#bow-lines" stroke="#f2e4c2" stroke-width="5.4"
+               stroke-linecap="butt" stroke-dasharray="1.6 7" stroke-dashoffset="3.6" opacity=".11"/>
+          <use href="#bow-knot"  stroke="#f2e4c2" stroke-width="10.4"
+               stroke-linecap="butt" stroke-dasharray="1.6 7" stroke-dashoffset="3.6" opacity=".11"/>
+          <use href="#bow-lines" stroke="#4a3413" stroke-width="4.4"
+               stroke-linecap="butt" stroke-dasharray="1.4 10" stroke-dashoffset="5.9" opacity=".1"/>
+          <use href="#bow-knot"  stroke="#4a3413" stroke-width="8.4"
+               stroke-linecap="butt" stroke-dasharray="1.4 10" stroke-dashoffset="5.9" opacity=".1"/>
+         </g>
+        </g>
+
+        <!-- tag giấy treo dưới nút -->
+        <g class="g-tag">
+          <!-- DÂY ĐEN MẢNH (không phải dây cói): một nét mực gọn, luồn qua
+               lỗ xỏ của tag ở (192,190). Không dùng #twine-fuzz. -->
+          <path d="M158,110 C170,138 180,162 192,187" fill="none"
+                stroke="#2a231c" stroke-width="3.3" stroke-linecap="round"/>
+          <path d="M158,110 C170,138 180,162 192,187" fill="none"
+                stroke="#fdf6e3" stroke-width="1" stroke-linecap="round" opacity=".22"/>
+          <g transform="rotate(-9 236 204)">
+            <rect x="182" y="170" width="108" height="64" rx="6"
+                  fill="url(#g-tagpaper)" stroke="#2a231c" stroke-width="2.8"/>
+            <rect x="188" y="176" width="96" height="52" rx="3"
+                  fill="none" stroke="#2a231c" stroke-width="1.1" opacity=".4"/>
+            <circle cx="195" cy="183" r="5.4" fill="#2a231c" opacity=".14"/>
+            <circle cx="195" cy="183" r="5.4" fill="none" stroke="#2a231c" stroke-width="2.4"/>
+            <text x="238" y="212" text-anchor="middle"
+                  font-family="'Patrick Hand', 'Segoe Script', cursive"
+                  font-size="25" letter-spacing="1.6" fill="#2a231c">OPEN ME</text>
+          </g>
+        </g>
+      </svg>
+    </div>
+  </button>
+</div>
+
+<!-- ============================================================
+     BOOK
+     ============================================================ -->
+<div class="stage" id="stage">
+<main class="book" id="book">
+
+  <!-- ─────────────── BÌA TRƯỚC — hai đứa tự giới thiệu ─────────────── -->
+  <section class="page cover intro paper grain is-active" data-label="Bìa trước">
+    <div class="plate">
+      <!-- Hai đứa đứng NGANG HÀNG dưới hai vệt spotlight, bong bóng thoại
+           đều nằm PHÍA TRÊN đầu: của Ben lệch phải, của Bin lệch trái. -->
+      <div class="intro-stage">
+
+        <figure class="cast ben">
+          <div class="bubble tail-left">Con là <b>Ben</b>. <svg class="bike-inline" viewBox="0 0 30 20" aria-hidden="true"><use href="#bike"/></svg><br>Con hay la cà và mê thám hiểm.</div>
+          <div class="lit"><svg viewBox="0 0 215 195" aria-label="Ben"><use href="#ben-sparkle" transform="translate(4,6)"/></svg></div>
+        </figure>
+
+        <figure class="cast bin">
+          <div class="bubble tail-right">Con là <b>Bin</b>. <svg class="note-inline" viewBox="0 0 24 20" aria-hidden="true"><use href="#note-beam"/></svg><br>Con còn nhỏ xíu nhỏ xiu và thích hát ca líu lo.</div>
+          <div class="lit"><svg viewBox="0 0 215 195" aria-label="Bin"><use href="#bin-sparkle" transform="translate(4,6)"/></svg></div>
+        </figure>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── TRANG 2 ───────────────
+       Bố cục "một khung + lề dẫn chuyện": chữ dẫn chuyện nằm NGOÀI
+       khung tranh, ở cột trái; bên phải là MỘT khung tranh duy nhất. -->
+  <section class="page comic paper grain" data-label="Trang 2">
+    <div class="plate">
+
+      <div class="panels layout-split narr-left">
+
+        <div class="narration">
+          <p>Ben lanh lẹ lắm, thế nên khắp nơi đâu đâu cũng là nhà của Ben.</p>
+          <p>Ben khoái rong ruổi đó đây (dù lắm lúc đi hơi xa tí hí hí).</p>
+        </div>
+
+        <div class="panel">
+          <svg viewBox="0 0 560 600" preserveAspectRatio="xMidYMid slice" aria-label="Ben rong ruổi trên con đường quê, nhắm mắt cười tít">
+            <rect width="560" height="600" fill="#f7eed8"/>
+            <rect width="560" height="600" fill="url(#halftone-soft)"/>
+
+            <!-- trời -->
+            <!-- mặt trời TÔ TRƠN: không đắp halftone lên trong lòng, giống
+                 đám mây. Bầu trời quanh nó vẫn giữ chấm. -->
+            <circle cx="470" cy="82" r="44" fill="#f6d99a" stroke="#2a231c" stroke-width="3"/>
+            <g transform="translate(40,64) scale(.85)"><use href="#cloud"/></g>
+            <g transform="translate(238,36) scale(.6)"><use href="#cloud"/></g>
+            <g transform="translate(388,158) scale(.5)"><use href="#cloud"/></g>
+            <g fill="none" stroke="#2a231c" stroke-width="2.5" stroke-linecap="round" opacity=".6">
+              <path d="M146,168 q11,-9 21,0 q11,-9 21,0"/>
+              <path d="M200,140 q8,-7 16,0 q8,-7 16,0"/>
+            </g>
+
+            <!-- đồi xa + mấy nếp nhà rải khắp nơi -->
+            <path d="M0,336 C70,300 118,296 176,320 C232,344 268,306 330,302
+                     C398,298 440,326 490,318 C520,313 542,320 560,314 L560,600 L0,600 Z" fill="#e6d9b6"/>
+            <path d="M0,336 C70,300 118,296 176,320 C232,344 268,306 330,302
+                     C398,298 440,326 490,318 C520,313 542,320 560,314"
+                  fill="none" stroke="#2a231c" stroke-width="3"/>
+            <g transform="translate(80,275) scale(.6)"><use href="#house"/></g>
+            <g transform="translate(392,284) scale(.5)"><use href="#house"/></g>
+            <g transform="translate(498,295) scale(.42)"><use href="#house"/></g>
+
+            <!-- bãi cỏ gần -->
+            <path d="M0,392 C120,368 240,384 360,374 C440,367 500,378 560,372 L560,600 L0,600 Z" fill="#eee3c8"/>
+            <path d="M0,392 C120,368 240,384 360,374 C440,367 500,378 560,372"
+                  fill="none" stroke="#2a231c" stroke-width="3"/>
+
+            <!-- con đường chạy tuốt về phía chân trời -->
+            <path d="M268,342 C260,420 240,480 100,600 L400,600 C296,480 288,420 292,342 Z"
+                  fill="#e3d4ab" stroke="#2a231c" stroke-width="3"/>
+            <path d="M280,348 C274,420 268,480 250,596"
+                  fill="none" stroke="#2a231c" stroke-width="3" stroke-dasharray="16 20" opacity=".5"/>
+
+            <!-- cột chỉ đường: lối nào rồi cũng là lối về nhà.
+                 ĐẦU biển ốp vào cột, mũi nhọn chĩa RA NGOÀI — không phải
+                 cắm mũi nhọn vào cột rồi để thân biển lửng lơ. -->
+            <path d="M432,424 v104" stroke="#2a231c" stroke-width="4"/>
+            <path d="M432,436 h56 l14,11 l-14,11 h-56 Z" fill="#fdf6e3" stroke="#2a231c" stroke-width="2.5"/>
+            <path d="M432,468 h44 l13,10 l-13,10 h-44 Z" fill="#e6d4ae" stroke="#2a231c" stroke-width="2.5"/>
+
+            <!-- bụi cỏ hai bên -->
+            <g fill="none" stroke="#2a231c" stroke-width="2.5" stroke-linecap="round" opacity=".55">
+              <path d="M52,470 v-16 M60,470 v-22 M68,470 v-14"/>
+              <path d="M508,558 v-18 M518,558 v-24 M528,558 v-15"/>
+              <path d="M414,432 v-14 M422,432 v-19"/>
+            </g>
+
+            <rect y="470" width="560" height="130" fill="url(#halftone)" opacity=".22"/>
+
+            <!-- vệt bụi và vạch gió phía sau: Ben lanh lẹ, đi nhanh lắm -->
+            <g fill="#fdf6e3" stroke="#2a231c" stroke-width="2" opacity=".85">
+              <circle cx="140" cy="524" r="11"/>
+              <circle cx="116" cy="540" r="7.5"/>
+              <circle cx="96" cy="530" r="5"/>
+            </g>
+            <g stroke="#2a231c" stroke-width="3" stroke-linecap="round" opacity=".45">
+              <path d="M92,452 h30 M78,478 h26 M100,428 h22"/>
+            </g>
+
+            <g transform="translate(160,296) scale(1.32)"><use href="#ben-joy"/></g>
+          </svg>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── TRANG 3 ───────────────
+       Cùng bố cục với trang 2, chỉ đảo bên: khung tranh bên TRÁI,
+       lề dẫn chuyện bên PHẢI. -->
+  <section class="page comic paper grain" data-label="Trang 3">
+    <div class="plate">
+
+      <div class="panels layout-split narr-right">
+
+        <div class="panel">
+          <svg viewBox="0 0 560 600" preserveAspectRatio="xMidYMid slice" aria-label="Bin nhắm mắt ngân nga trong nhà, nốt nhạc bay quanh câu hát">
+            <rect width="560" height="600" fill="#f3e7cc"/>
+            <rect width="560" height="600" fill="url(#halftone-soft)"/>
+
+            <!-- cửa sổ nhìn ra ngoài -->
+            <rect x="44" y="52" width="168" height="118" rx="4" fill="#cddad6" stroke="#2a231c" stroke-width="5"/>
+            <path d="M128,52 v118 M44,111 h168" stroke="#2a231c" stroke-width="4"/>
+            <circle cx="90" cy="86" r="16" fill="#f6d99a" stroke="#2a231c" stroke-width="2.5"/>
+            <g transform="translate(146,126) scale(.34)"><use href="#cloud"/></g>
+            <path d="M34,172 h188" stroke="#2a231c" stroke-width="5" stroke-linecap="round"/>
+
+            <!-- khung ảnh treo tường -->
+            <g transform="rotate(-3 460 134)">
+              <rect x="402" y="86" width="118" height="96" fill="#fdf6e3" stroke="#2a231c" stroke-width="4"/>
+              <!-- lòng khung ảnh TÔ TRƠN, giống ô cửa sổ. Tường quanh nó
+                   vẫn giữ chấm halftone. -->
+              <rect x="414" y="98" width="94" height="72" fill="#dfd3b4" stroke="#2a231c" stroke-width="2"/>
+              <path d="M461,152 C441,136 434,124 442,116 C449,109 458,113 461,120
+                       C464,113 473,109 480,116 C488,124 481,136 461,152 Z"
+                    fill="#b4442e" stroke="#2a231c" stroke-width="2.5"/>
+            </g>
+
+            <!-- SÀN NHÀ + THẢM TRƠN.
+                 Không kẻ ô gạch lát, không rải halftone lên sàn: chấm halftone
+                 nằm dưới thảm vẫn ánh lên qua lớp màu mỏng, thành thảm rỗ chấm.
+                 Mặt thảm tô một màu đặc #d29a86, chỉ viền mực là nét. -->
+            <path d="M0,506 H560" stroke="#2a231c" stroke-width="4"/>
+            <rect y="506" width="560" height="94" fill="#e0cca4"/>
+            <ellipse cx="268" cy="552" rx="196" ry="34" fill="#d29a86"/>
+            <ellipse cx="268" cy="552" rx="196" ry="34" fill="none" stroke="#2a231c" stroke-width="2.5" opacity=".45"/>
+
+            <!-- giai điệu líu lo; nốt nhạc hiện ra ngay cạnh câu hát -->
+            <g transform="rotate(-4 284 250)" font-family="Patrick Hand, cursive" fill="#4a3f33">
+              <text x="284" y="222" text-anchor="middle" font-size="25">Nhong nhong nhong cha làm con ngựa</text>
+              <text x="300" y="280" text-anchor="middle" font-size="25">Để cho con lên cưỡi trên lưng</text>
+            </g>
+            <g transform="translate(70,190) scale(1.1) rotate(-12)"><use href="#note"/></g>
+            <g transform="translate(478,204) rotate(10)"><use href="#note"/></g>
+            <g transform="translate(124,254) scale(.85) rotate(-8)"><use href="#note"/></g>
+            <g transform="translate(468,276) scale(1.15) rotate(9)"><use href="#note"/></g>
+
+            <!-- nốt nhạc bay lên từ chỗ Bin ngồi -->
+            <g transform="translate(392,340) scale(.95) rotate(12)"><use href="#note"/></g>
+            <g transform="translate(352,404) scale(1.1)"><use href="#note"/></g>
+            <g transform="translate(396,462) scale(.8) rotate(-10)"><use href="#note"/></g>
+
+            <g transform="translate(112,300) scale(1.32)"><use href="#bin-sing"/></g>
+          </svg>
+        </div>
+
+        <div class="narration">
+          <p>Bin thích đàn, thích ca, suốt ngày quấn quýt líu lo bên papa không ngừng.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── TRANG 4 — bốn khung, bài hát nghêu ngao ───────────────
+       Bố cục .layout-2x2: bốn khung bằng nhau, mỗi khung một câu hát.
+       Khung 1 có hai đứa; ba khung sau chỉ có cảnh vật, câu hát vọng vào.
+       Chữ hát viết bằng Patrick Hand vẽ thẳng trong SVG + nốt #note bay
+       bên cạnh, cùng kiểu với trang 3.
+
+       CỠ KHUNG: khung 2x2 rộng 454, còn CAO thì đổi theo cửa sổ — trang
+       cao 660 (màn hình cao) cho khung 296 -> tỉ lệ 1.53; màn hình thấp
+       (68vh) rút xuống ~244 -> tỉ lệ 1.86. viewBox 460x270 (1.70) nằm
+       giữa dải đó, nên "slice" xén nhiều nhất ~24 đơn vị mỗi bên trái/phải
+       hoặc ~12 đơn vị trên/dưới. VÙNG AN TOÀN: x 26..434, y 14..256.
+
+       ĐƯỜNG CHÂN TƯỜNG ĐẶT CAO (y=206..214) ở cả bốn khung, để cái bóng
+       đổ dưới chân vật nằm GỌN TRONG mặt sàn. Bản trước để chân tường ở
+       y=238 nên bóng của hai đứa và của hộp carton vắt ngang qua đường
+       chân tường, nhìn như bóng dán lên tường. -->
+  <section class="page comic paper grain" data-label="Trang 4">
+    <div class="plate">
+
+      <div class="panels layout-2x2">
+
+        <!-- KHUNG 1 — hai đứa ngồi cạnh nhau hát nghêu ngao -->
+        <div class="panel">
+          <svg viewBox="0 0 460 270" preserveAspectRatio="xMidYMid slice" aria-label="Ben và Bin ngồi cạnh nhau hát nghêu ngao">
+            <rect width="460" height="270" fill="#f7eed8"/>
+            <rect width="460" height="270" fill="url(#halftone-soft)"/>
+
+            <!-- mặt sàn cao, chừa chỗ cho bóng đổ -->
+            <path d="M0,214 H460" stroke="#2a231c" stroke-width="3.5"/>
+            <rect y="214" width="460" height="56" fill="#e0cca4"/>
+
+            <!-- câu hát -->
+            <g transform="rotate(-3 230 48)" font-family="Patrick Hand, cursive" fill="#4a3f33">
+              <text x="230" y="48" text-anchor="middle" font-size="24">Bố hay đi linh tinh</text>
+            </g>
+            <g transform="translate(78,38) scale(1.05) rotate(-12)"><use href="#note"/></g>
+            <g transform="translate(368,32) scale(.9) rotate(11)"><use href="#note"/></g>
+            <g transform="translate(392,72) scale(.75) rotate(-8)"><use href="#note"/></g>
+
+            <!-- chân chạm y=180 trong khung sprite: 110.4 + 180*.72 = 240.
+                 Bóng của #cat-core (cy181 ry10) rơi vào 233..248 — nằm gọn
+                 trong mặt sàn 214..270. -->
+            <g transform="translate(90,110.4) scale(.72)"><use href="#ben-joy"/></g>
+            <g transform="translate(228,110.4) scale(.72)"><use href="#bin-sing"/></g>
+          </svg>
+        </div>
+
+        <!-- KHUNG 2 — CỬA KÍNH CAO TỪ SÀN LÊN TRẦN, nhìn ra trời xanh.
+             Theo prototype/glasswindowview.jpg. Không vẽ dải trần, không vẽ
+             tường: kính tràn ra ngoài hai mép ngang, chạy từ đỉnh khung tranh
+             xuống chân sàn y=212.
+             KHUNG MỰC PHẢI BAO KÍN Ô KÍNH — chỗ nào có kính là chỗ đó có nẹp
+             quây quanh, không được hở một khoảng kính nào ra ngoài khung:
+                 thanh áp trần   y 0..9    (DÀY ĐÚNG BẰNG thanh chân sàn — bản
+                                            trước dày 22, ô kính bị ăn mất một
+                                            dải trên)
+                 thanh chân sàn  y 203..212
+                 nẹp đứng x 226, CHẠY THẲNG từ thanh áp trần xuống thanh chân
+                                 sàn (y 9..208) -> đúng hai cánh
+             CHỈ CÓ HAI THANH NGANG. Bản trước có thêm một thanh ngang giữa ở
+             y=66 để chừa khoang trên cho câu hát — chủ nhà chốt bỏ.
+             Vì nẹp đứng giờ chạy suốt chiều cao, CÂU HÁT PHẢI DẠT HẲN SANG MỘT
+             CÁNH — chốt là CÁNH PHẢI (canh giữa x=338, cỡ chữ 21 để lọt trong
+             khoang 234..434), không thì nẹp cắt dọc ngay giữa chữ. Nốt nhạc
+             cũng nằm luôn ở cánh phải, rải phía dưới câu hát.
+             Vệt sáng mặt kính cũng dừng ở y=96, dưới chân chữ.
+             Ngoài ô kính CHỈ CÓ TRỜI: không đường chân trời, không nhà cửa, và
+             KHÔNG rải halftone lên trời lẫn mặt sàn — hai mảng đó phải trơn. -->
+        <div class="panel">
+          <svg viewBox="0 0 460 270" preserveAspectRatio="xMidYMid slice" aria-label="Cửa kính hai cánh cao từ sàn lên trần, nhìn ra bầu trời xanh">
+            <rect width="460" height="270" fill="#f3e7cc"/>
+
+            <!-- trời sau lớp kính — trơn, không chấm -->
+            <rect x="-10" y="-10" width="480" height="222" fill="#a9c9dc"/>
+            <g transform="translate(48,88) scale(.40)"><use href="#cloud"/></g>
+            <g transform="translate(146,152) scale(.28)"><use href="#cloud"/></g>
+            <g transform="translate(256,132) scale(.40)"><use href="#cloud"/></g>
+            <g transform="translate(354,166) scale(.28)"><use href="#cloud"/></g>
+
+            <!-- vệt sáng trên mặt kính -->
+            <!-- VỆT SÁNG MẶT KÍNH: mỗi cánh MỘT CẶP, cùng độ dốc, cùng
+                 chiều dài, và đặt cùng một khoảng cách tới mép trái của
+                 cánh (34 và 58) -> hai cánh soi gương nhau. Bản trước cánh
+                 trái hai vệt, cánh phải một vệt, đặt lệch nhau. -->
+            <g stroke="#fdf6e3" stroke-width="8" opacity=".26" stroke-linecap="round">
+              <path d="M60,186 L114,96 M84,186 L138,96"/>
+              <path d="M268,186 L322,96 M292,186 L346,96"/>
+            </g>
+
+            <!-- KHUNG MỰC quây kín ô kính -->
+            <g fill="#2a231c">
+              <rect x="-10" y="0" width="480" height="9"/>
+              <rect x="-10" y="203" width="480" height="9"/>
+              <rect x="226" y="9" width="8" height="199"/>
+            </g>
+            <!-- tay nắm hai cánh, kề hai bên nẹp giữa -->
+            <g fill="#8a6a45" stroke="#2a231c" stroke-width="2">
+              <rect x="212" y="128" width="5" height="26" rx="2.5"/>
+              <rect x="243" y="128" width="5" height="26" rx="2.5"/>
+            </g>
+
+            <!-- sàn nhà — trơn, không chấm -->
+            <rect y="212" width="460" height="58" fill="#e0cca4"/>
+
+            <!-- chậu cây đứng trước cửa kính -->
+            <g transform="translate(44,194)">
+              <g fill="none" stroke="#2a231c" stroke-width="2.6" stroke-linecap="round">
+                <path d="M22,26 C18,6 8,2 2,4"/>
+                <path d="M22,26 C24,8 34,2 42,6"/>
+                <path d="M22,26 C22,12 26,4 22,-4"/>
+              </g>
+              <g fill="#4c706b" stroke="#2a231c" stroke-width="2">
+                <ellipse cx="2" cy="4" rx="8" ry="5.5" transform="rotate(-28 2 4)"/>
+                <ellipse cx="42" cy="6" rx="8" ry="5.5" transform="rotate(26 42 6)"/>
+                <ellipse cx="22" cy="-4" rx="6.5" ry="9"/>
+              </g>
+              <path d="M6,26 h32 l-5,32 h-22 Z" fill="#b4442e" stroke="#2a231c" stroke-width="2.6" stroke-linejoin="round"/>
+              <path d="M4,26 h36" stroke="#2a231c" stroke-width="3.4" stroke-linecap="round"/>
+            </g>
+
+            <!-- câu hát, nằm ở khoang kính trên cùng -->
+            <g transform="rotate(-3 338 48)" font-family="Patrick Hand, cursive" fill="#2a231c">
+              <text x="338" y="48" text-anchor="middle" font-size="21">Bố hay đi một mình</text>
+            </g>
+            <g transform="translate(258,80) scale(1.0) rotate(-12)"><use href="#note"/></g>
+            <g transform="translate(348,72) scale(.85) rotate(10)"><use href="#note"/></g>
+            <g transform="translate(410,96) scale(.72) rotate(-8)"><use href="#note"/></g>
+          </svg>
+        </div>
+
+        <!-- KHUNG 3 — cái đu đơn giản TREO TRÊN CÀNH CÂY, không ai ngồi.
+             BẢN NÀY LÀ BẢN CHỐT. Đã thử vẽ theo prototype/swing.jpg
+             (xích đu sắt có khung đứng hai chữ A + thanh vòm, ghế nan,
+             cây đứng bên cạnh) — chủ nhà CHỐT Bỏ, quay về cái đu treo
+             cành này. Đừng vẽ lại theo swing.jpg nữa. -->
+        <div class="panel">
+          <svg viewBox="0 0 460 270" preserveAspectRatio="xMidYMid slice" aria-label="Chiếc xích đu trắng treo dưới cành cây, không có ai ngồi">
+            <rect width="460" height="270" fill="#f2ead2"/>
+            <rect width="460" height="270" fill="url(#halftone-soft)"/>
+
+            <!-- bãi cỏ, mép cỏ đặt cao để bóng đổ nằm gọn trên cỏ -->
+            <path d="M0,212 C110,204 210,216 320,209 C384,205 424,212 460,208 L460,270 L0,270 Z" fill="#e2dcb4"/>
+            <path d="M0,212 C110,204 210,216 320,209 C384,205 424,212 460,208"
+                  fill="none" stroke="#2a231c" stroke-width="3"/>
+            <g fill="none" stroke="#2a231c" stroke-width="2.4" stroke-linecap="round" opacity=".5">
+              <path d="M40,236 v-13 M48,236 v-18 M56,236 v-11"/>
+              <path d="M400,250 v-14 M409,250 v-19 M418,250 v-12"/>
+            </g>
+
+            <!-- CÀNH CÂY vắt ngang, thon dần về phía ngọn bên phải.
+                 THỨ TỰ VẼ: thân cành nâu -> nhánh con -> lá -> NÉT GỖ VẼ SAU
+                 CÙNG. Nét gỗ là một nét mực chạy dọc GIỮA cành; nếu vẽ lá sau
+                 nó thì lá đè lên, nét gỗ đứt quãng từng khúc.
+                 LÁ PHẢI CÓ CHỖ BÁM. Lá mọc thẳng từ cành lớn (x 46, 88, 186,
+                 416) thì mép dưới thụt vào trong dải cành ~2 đơn vị, nhưng dừng
+                 TRÊN đường tim cành nên nét gỗ (chạy đúng ở tim) vẫn liền mạch.
+                 Còn hai chiếc mọc từ NHÁNH CON (x 152, 376) thì cứ để tự nhiên
+                 ở đầu nhánh, không cần dí xuống cành lớn.
+                 Nhấc hết lá lên khỏi cành cho "khỏi che nét gỗ" là sai — lá
+                 thành ra lơ lửng giữa trời. -->
+            <path d="M0,100 C80,88 156,96 246,94" fill="none" stroke="#8a6a45"
+                  stroke-width="13" stroke-linecap="round"/>
+            <path d="M246,94 C320,92 386,102 460,96" fill="none" stroke="#8a6a45"
+                  stroke-width="8" stroke-linecap="round"/>
+            <path d="M112,96 C124,86 138,82 152,80 M330,98 C344,86 360,82 374,82"
+                  fill="none" stroke="#8a6a45" stroke-width="4.5" stroke-linecap="round"/>
+            <g fill="#4c706b" stroke="#2a231c" stroke-width="2">
+              <ellipse cx="46" cy="84" rx="14" ry="8" transform="rotate(-22 46 84)"/>
+              <ellipse cx="88" cy="84" rx="11" ry="6.5" transform="rotate(14 88 84)"/>
+              <ellipse cx="152" cy="76" rx="13" ry="7.5" transform="rotate(-18 152 76)"/>
+              <ellipse cx="186" cy="86" rx="10" ry="6" transform="rotate(16 186 86)"/>
+              <ellipse cx="376" cy="78" rx="12" ry="7" transform="rotate(-16 376 78)"/>
+              <ellipse cx="416" cy="89" rx="10" ry="6" transform="rotate(20 416 89)"/>
+            </g>
+            <path d="M0,100 C80,88 156,96 246,94 C320,92 386,102 460,96"
+                  fill="none" stroke="#2a231c" stroke-width="2" opacity=".45"/>
+
+            <!-- cái đu: cả cụm nghiêng nhẹ quanh chỗ buộc trên cành -->
+            <g transform="rotate(-4 248 96)">
+              <path d="M198,96 V186 M298,96 V186" stroke="#2a231c" stroke-width="3.4" stroke-linecap="round"/>
+              <rect x="180" y="184" width="136" height="15" rx="3"
+                    fill="#fff8e6" stroke="#2a231c" stroke-width="3"/>
+              <path d="M184,193 h128" stroke="#2a231c" stroke-width="1.8" opacity=".35"/>
+            </g>
+            <ellipse cx="246" cy="236" rx="66" ry="9" fill="#2a231c" opacity=".14"/>
+
+            <!-- câu hát -->
+            <g transform="rotate(-3 230 48)" font-family="Patrick Hand, cursive" fill="#4a3f33">
+              <text x="230" y="48" text-anchor="middle" font-size="24">Con không thích ở nhà</text>
+            </g>
+            <g transform="translate(60,26) scale(1.05) rotate(-12)"><use href="#note"/></g>
+            <g transform="translate(392,22) scale(.88) rotate(11)"><use href="#note"/></g>
+            <g transform="translate(414,54) scale(.72) rotate(-9)"><use href="#note"/></g>
+          </svg>
+        </div>
+
+        <!-- KHUNG 4 — chiếc hộp carton mở nắp, nhìn chính diện -->
+        <div class="panel">
+          <svg viewBox="0 0 460 270" preserveAspectRatio="xMidYMid slice" aria-label="Một chiếc hộp carton đang mở nắp, nhìn từ chính diện">
+            <rect width="460" height="270" fill="#f7eed8"/>
+            <rect width="460" height="270" fill="url(#halftone-soft)"/>
+
+            <!-- mặt sàn cao, chừa chỗ cho bóng đổ -->
+            <path d="M0,214 H460" stroke="#2a231c" stroke-width="3.5"/>
+            <rect y="214" width="460" height="56" fill="#e0cca4"/>
+            <ellipse cx="230" cy="246" rx="104" ry="9" fill="#2a231c" opacity=".13"/>
+
+            <!-- Hộp nhìn CHÍNH DIỆN, bốn cánh mở. Thứ tự vẽ từ sau ra trước:
+                 cánh sau dựng lên -> lòng hộp tối -> hai cánh hông xoè ngang
+                 -> mặt trước -> cánh trước gập xuống. -->
+            <g transform="translate(0,8)" stroke="#2a231c" stroke-width="3" stroke-linejoin="round">
+              <path d="M158,142 H302 L294,96 H166 Z" fill="#d3ae7a"/>
+              <path d="M158,136 H302 V158 H158 Z" fill="#6f5a3d"/>
+              <path d="M158,136 V158 L100,192 V170 Z" fill="#c9a273"/>
+              <path d="M302,136 V158 L360,192 V170 Z" fill="#c9a273"/>
+              <path d="M156,158 H304 V238 H156 Z" fill="#d9b781"/>
+              <path d="M156,158 H304 L296,196 H164 Z" fill="#c9a273"/>
+            </g>
+            <path d="M230,204 V246" fill="none" stroke="#2a231c" stroke-width="2" opacity=".35"/>
+
+            <!-- câu hát -->
+            <g transform="rotate(-3 230 48)" font-family="Patrick Hand, cursive" fill="#4a3f33">
+              <text x="230" y="48" text-anchor="middle" font-size="24">Thích đi cùng bố cơ...</text>
+            </g>
+            <g transform="translate(52,26) scale(1.05) rotate(-12)"><use href="#note"/></g>
+            <g transform="translate(396,20) scale(.9) rotate(12)"><use href="#note"/></g>
+            <g transform="translate(418,58) scale(.74) rotate(-8)"><use href="#note"/></g>
+          </svg>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── TRANG 5 — một dòng chữ giữa tờ giấy ───────────────
+       Không khung tranh: cả trang chỉ có một câu, đặt chính giữa.
+       Câu hỏi để tự xuống dòng theo bề ngang; riêng "Thôi đành vậy..."
+       chủ động xuống dòng bằng <br> cho tách hẳn ra. -->
+  <section class="page comic paper grain" data-label="Trang 5">
+    <div class="plate">
+      <div class="solo-text">
+        <p>... Nhưng lần này chắc papa chẳng cho bọn con đi chơi cùng được đâu nhỉ?<br>Thôi đành vậy...</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── BÌA CUỐI — tên truyện ─────────────── -->
+  <section class="page cover final paper grain" data-label="Bìa cuối">
+    <div class="plate">
+
+      <svg class="stamp" viewBox="0 0 100 100" aria-hidden="true"><use href="#stamp-belgium"/></svg>
+
+      <h1 class="cover-title">
+        See You Soon
+        <small>P A P A !</small>
+      </h1>
+
+      <div class="cover-cast">
+        <figure><svg viewBox="0 0 215 195" aria-label="Ben"><use href="#ben-joy" transform="translate(4,6)"/></svg></figure>
+        <figure><svg viewBox="0 0 215 195" aria-label="Bin"><use href="#bin-joy" transform="translate(4,6)"/></svg></figure>
+      </div>
+
+      <p class="final-note">Mong những “sứ giả xíu xiu” của bọn con có thể đi theo chăm sóc papa trên chuyến đi này nhé!</p>
+      <span class="sign">— Ben &amp; Bin</span>
+
+      <svg class="postmark" viewBox="0 0 210 110" aria-hidden="true">
+        <g transform="rotate(-8 105 55)" opacity=".62">
+          <circle cx="66" cy="55" r="38" fill="none" stroke="#b4442e" stroke-width="3"/>
+          <circle cx="66" cy="55" r="29" fill="none" stroke="#b4442e" stroke-width="1.5"/>
+          <text x="66" y="50" text-anchor="middle" font-family="Piazzolla, Georgia, serif"
+                font-size="11" fill="#b4442e">SEE YOU</text>
+          <text x="66" y="66" text-anchor="middle" font-family="Piazzolla, Georgia, serif"
+                font-size="11" fill="#b4442e">SOON</text>
+          <path d="M112,38 h80 M112,50 h80 M112,62 h80 M112,74 h80"
+                stroke="#b4442e" stroke-width="3" opacity=".85"/>
+        </g>
+      </svg>
+
+    </div>
+  </section>
+
+  <!-- ─────────────── TRANG 7 — một dòng chữ giữa tờ giấy ───────────────
+       Cùng kiểu với trang 5: không khung tranh, chỉ một câu đặt chính giữa
+       (.solo-text). Câu này bắc cầu sang tấm thiệp viết tay ở trang 8. -->
+  <section class="page comic paper grain" data-label="Trang 7">
+    <div class="plate">
+      <div class="solo-text">
+        <p>À đúng rồi! Hình như còn ai đó cũng muốn nhắn nhủ đến papa đó...</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── TRANG 8 — tấm thiệp kẻ dòng, chữ viết tay ───────────────
+       Cả trang là mặt trong tấm thiệp: mấy dòng kẻ ngang để viết chữ, chữ
+       viết tay (Patrick Hand) đặt ĐÚNG trên dòng kẻ — dòng kẻ là background
+       của chính khối chữ nên nhịp dòng luôn khớp với line-height.
+       Con dấu đỏ ở góc dưới phải: cùng kiểu con dấu "SEE YOU SOON" ở bìa
+       cuối, chỉ thay dòng chữ bằng đầu con thỏ trơn tô đỏ (#bunny-head).
+       Lời nhắn do chủ nhà gửi — mỗi ý một <p>, đúng 9 dòng kẻ. -->
+  <section class="page comic paper grain letter-page" data-label="Trang 8">
+    <div class="plate">
+
+      <div class="letter-body">
+        <p>Em,</p>
+        <p>Vậy là em sắp bước vào một hành trình mới rồi nhỉ</p>
+        <p>Sẽ là một chân trời rất mới, rất khác với những nơi em từng đi qua</p>
+        <p>Mong rằng trên chuyến hành trình ấy</p>
+        <p>Dù buồn hay vui, khó khăn hay dễ dàng</p>
+        <p>Em cũng sẽ tận hưởng trọn vẹn từng giây phút nhé!</p>
+        <p class="blank">&nbsp;</p>
+        <p class="closing">Thương mến,</p>
+        <p class="closing">“Anh trai” của em</p>
+      </div>
+
+      <!-- cùng con tem "To Belgium" với bìa cuối, cùng chỗ (góc trên phải) -->
+      <svg class="stamp" viewBox="0 0 100 100" aria-hidden="true"><use href="#stamp-belgium"/></svg>
+
+      <svg class="letter-stamp" viewBox="0 0 210 110" aria-hidden="true">
+        <g transform="rotate(-8 105 55)" opacity=".62">
+          <circle cx="66" cy="55" r="38" fill="none" stroke="#b4442e" stroke-width="3"/>
+          <circle cx="66" cy="55" r="29" fill="none" stroke="#b4442e" stroke-width="1.5"/>
+          <g transform="translate(66,56.5)" fill="#b4442e">
+            <use href="#bunny-head"/>
+          </g>
+          <path d="M112,38 h80 M112,50 h80 M112,62 h80 M112,74 h80"
+                stroke="#b4442e" stroke-width="3" opacity=".85"/>
+        </g>
+      </svg>
+
+    </div>
+  </section>
+
+</main>
+</div>
+
+<nav class="controls" aria-label="Điều hướng trang">
+  <button id="prev" type="button">‹</button>
+  <div class="dots" id="dots"></div>
+  <span class="counter" id="counter">1 / 4</span>
+  <button id="next" type="button">›</button>
+</nav>
+
+<script src="main.js?v=2.27"></script>
+</body>
+</html>
